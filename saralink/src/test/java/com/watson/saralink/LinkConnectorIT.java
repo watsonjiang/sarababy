@@ -2,11 +2,11 @@ package com.watson.saralink;
 
 import org.junit.Test;
 
-public class LinkManagerIT {
+public class LinkConnectorIT {
     //测试连接
     @Test
     public void testConnect() {
-        LinkManager m = new LinkManager();
+        LinkConnector m = new LinkConnector();
 
         while(true) {
             try{

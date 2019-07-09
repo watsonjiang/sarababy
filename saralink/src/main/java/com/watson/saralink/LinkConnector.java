@@ -25,7 +25,7 @@ import java.util.concurrent.Executors;
  * 职责：
  *    创建并保持与annaServer的连接
  */
-public class LinkManager {
+public class LinkConnector {
 
     //触发加载消息类，不用赋值
     static CmdExecReq cmdExecReq;
@@ -35,23 +35,21 @@ public class LinkManager {
     static LoginReq loginReq;
     static LoginRsp loginRsp;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(LinkManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(LinkConnector.class);
 
     final int SERVER_PORT = 9999;
 
     IoSession session;
 
-    LinkFsm linkFsm;
+    LinkClientFsm linkClientFsm;
 
     ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     NioSocketConnector connector = new NioSocketConnector();
 
-    static LinkManager _instance = null;
-
     IRequestHandler requestHandler;
 
-    LinkManager() {
+    LinkConnector() {
         Runnable acConnect = new Runnable() {
             @Override
             public void run() {
@@ -65,9 +63,9 @@ public class LinkManager {
             }
         };
 
-        linkFsm = new LinkFsm(acConnect, acLogin);
+        linkClientFsm = new LinkClientFsm(acConnect, acLogin);
         initConnector();
-        executorService.submit(linkFsm);
+
     }
 
     void initConnector() {
@@ -80,11 +78,8 @@ public class LinkManager {
         connector.setHandler(new LinkMessageHandler(this));
     }
 
-    public static LinkManager instance() {
-        if(null == _instance) {
-            _instance = new LinkManager();
-        }
-        return _instance;
+    public void start() {
+        executorService.submit(linkClientFsm);
     }
 
     void sleep() {
@@ -99,11 +94,11 @@ public class LinkManager {
         LoginReq req = new LoginReq();
         req.utdid = "123456";  //TODO: use idManager
         session.write(req);
-        linkFsm.postEv(LinkEvent.EV_LOGIN_START);
+        linkClientFsm.postEv(LinkEvent.EV_LOGIN_START);
     }
 
     void onLoginRsp(LoginRsp rsp) {
-        linkFsm.postEv(LinkEvent.EV_LOGIN_SUCC);
+        linkClientFsm.postEv(LinkEvent.EV_LOGIN_SUCC);
     }
 
     void onCmdExecReq(CmdExecReq req) {
@@ -112,7 +107,7 @@ public class LinkManager {
     }
 
     void onLinkException() {
-        linkFsm.postEv(LinkEvent.EV_EXCEPTION);
+        linkClientFsm.postEv(LinkEvent.EV_EXCEPTION);
     }
 
     public void setRequestHandler(IRequestHandler h) {
@@ -128,14 +123,14 @@ public class LinkManager {
             f.awaitUninterruptibly();
             if(f.isConnected()) {
                 session = f.getSession();
-                linkFsm.postEv(LinkEvent.EV_CONN_SUCC);
+                linkClientFsm.postEv(LinkEvent.EV_CONN_SUCC);
             }else{
                 LOGGER.info("connect failed.");
-                linkFsm.postEv(LinkEvent.EV_EXCEPTION);
+                linkClientFsm.postEv(LinkEvent.EV_EXCEPTION);
             }
         }catch (Exception e) {
             LOGGER.info("connect failed.", e);
-            linkFsm.postEv(LinkEvent.EV_EXCEPTION);
+            linkClientFsm.postEv(LinkEvent.EV_EXCEPTION);
         }
     }
 

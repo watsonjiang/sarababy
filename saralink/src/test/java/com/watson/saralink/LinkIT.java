@@ -19,7 +19,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-public class MockServerIT {
+public class LinkIT {
 
     public static class TestMessageHandler extends IoHandlerAdapter {
 
@@ -55,19 +55,18 @@ public class MockServerIT {
         BasicConfigurator.configure();
     }
 
+
     @Test
     public void testMockServer() throws IOException {
-        NioSocketAcceptor acceptor = new NioSocketAcceptor();
 
-        acceptor.getFilterChain().addLast("logger", new LoggingFilter());
-        acceptor.getFilterChain().addLast("protocol", new ProtocolCodecFilter(new MessageCodecFactory()));
-        acceptor.getFilterChain().addLast("keepalive", new KeepAliveFilter(new KeepAliveMessageFactoryImpl(true)));
+        LinkManager acceptor = new LinkAcceptor();
 
-        acceptor.setDefaultLocalAddress(new InetSocketAddress("0.0.0.0", 9999));
+        while(null != linkMgr.getPeer("123456")) {
 
-        acceptor.setHandler(new TestMessageHandler("mockserver"));
+            rsp = linkMgr.getPeer("123456").execCmd(Req);
 
-        acceptor.bind();
+        }
+
 
         while(true) {
             try{
@@ -80,27 +79,14 @@ public class MockServerIT {
 
     @Test
     public void testMockClient() throws InterruptedException {
-        NioSocketConnector connector = new NioSocketConnector();
-        connector.setConnectTimeoutMillis(1000);
-        connector.getFilterChain().addLast("logger", new LoggingFilter());
-        connector.getFilterChain().addLast("protocol", new ProtocolCodecFilter(new MessageCodecFactory()));
-        KeepAliveFilter keepAliveFilter = new KeepAliveFilter(new KeepAliveMessageFactoryImpl(false));
-        keepAliveFilter.setRequestInterval(10);
-        connector.getFilterChain().addLast("keepalive", keepAliveFilter);
+        LinkConnector linkConnector = new LinkConnector(requestHandler);
+        linkConnector.start();
 
-        connector.setHandler(new TestMessageHandler("mockclient"));
-
-        ConnectFuture f = connector.connect(new InetSocketAddress("localhost", 9999));
-        f.awaitUninterruptibly();
-
-        while(true) {
-            Thread.sleep(1000);
-        }
     }
 
     @Test
     public void testMockClient1() throws InterruptedException {
-        LinkManager.instance();
+        LinkConnector.instance();
         while(true) {
             Thread.sleep(1000);
         }

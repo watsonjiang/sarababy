@@ -15,10 +15,10 @@ public class LinkMessageHandler extends IoHandlerAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkMessageHandler.class);
 
-    LinkManager linkManager;
+    BaseFSM fsm;
 
-    public LinkMessageHandler(LinkManager m) {
-        linkManager = m;
+    public LinkMessageHandler(BaseFSM fsm) {
+        this.fsm = fsm;
     }
 
     @Override
@@ -34,15 +34,15 @@ public class LinkMessageHandler extends IoHandlerAdapter {
     @Override
     public void sessionClosed(IoSession ioSession) throws Exception {
         LOGGER.info("sessionClosed");
-        linkManager.onLinkException();
+        fsm.postEv(LinkEvent.EV_EXCEPTION);
     }
 
     @Override
     public void messageReceived(IoSession ioSession, Object o) throws Exception {
         if(o instanceof LoginRsp) {
-            linkManager.onLoginRsp((LoginRsp)o);
+            linkConnector.onLoginRsp((LoginRsp)o);
         }else if(o instanceof CmdExecReq) {
-            linkManager.onCmdExecReq((CmdExecReq)o);
+            linkConnector.onCmdExecReq((CmdExecReq)o);
         }
     }
 

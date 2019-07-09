@@ -68,7 +68,7 @@ public class ForegroundService extends Service {
     }
 
     void connect() {
-        LinkManager.instance().setRequestHandler(requestHandler);
+        LinkConnector.instance().setRequestHandler(requestHandler);
     }
 
     void disconnect() {

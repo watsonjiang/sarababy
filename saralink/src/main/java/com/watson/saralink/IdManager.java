@@ -1,6 +1,7 @@
 package com.watson.saralink;
 
-import android.util.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -18,7 +19,7 @@ import java.util.UUID;
  */
 public class IdManager {
 
-    final String TAG = "ID_MANAGER";
+    private static final Logger LOGGER = LoggerFactory.getLogger(IdManager.class);
 
     final String UUID_FILE_PATH = "/sdcard/annababy.uuid";
 
@@ -33,7 +34,7 @@ public class IdManager {
             w.write(id);
             w.close();
         } catch (IOException e) {
-            Log.e(TAG, e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
         }
     }
 
@@ -54,11 +55,11 @@ public class IdManager {
     public String getId() {
         String id = readFromFile();
         if(null == id) {
-            Log.i(TAG, "Id not found, create a new one.");
+            LOGGER.info("Id not found, create a new one.");
             id = genId();
             saveToFile(id);
         }
-        Log.d(TAG, "return id: "+ id);
+        LOGGER.debug("return id: "+ id);
         return id;
     }
 
