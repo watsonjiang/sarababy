@@ -1,1 +1,3 @@
-include ':app'
+rootProject.name = 'sarababy'
+include ':saralink'
+include ':sarababy'
