@@ -1,11 +1,16 @@
 package com.watson.saralink;
 
+import org.apache.mina.statemachine.annotation.State;
+
 import java.util.Arrays;
 import java.util.LinkedList;
 
-public class LinkServerFsm extends BaseFSM {
+public class LinkServerHandler {
 
-    public LinkServerFsm(Runnable acConnect, Runnable acLogin) {
+    @State
+    public static final String ST_CONNECTED = ""
+
+    public LinkServer() {
         stat = LinkStat.ST_DISCONNECTED;
 
         rules = new LinkedList<>(Arrays.asList(new Rule[]{
