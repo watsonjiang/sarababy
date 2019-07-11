@@ -8,6 +8,8 @@ public class LoginRsp extends Message {
         MessageMeta.registerMessage(TYPE_LOGIN_RSP, LoginRsp.class);
     }
 
+    public String peerId;
+
     public LoginRsp(LoginReq req) {
         id = req.id;
     }

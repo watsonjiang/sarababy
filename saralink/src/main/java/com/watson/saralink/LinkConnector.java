@@ -9,10 +9,18 @@ import com.watson.saralink.msg.LoginReq;
 import com.watson.saralink.msg.LoginRsp;
 
 import org.apache.mina.core.future.ConnectFuture;
+import org.apache.mina.core.service.IoHandler;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.keepalive.KeepAliveFilter;
 import org.apache.mina.filter.logging.LoggingFilter;
+import org.apache.mina.statemachine.StateMachine;
+import org.apache.mina.statemachine.StateMachineFactory;
+import org.apache.mina.statemachine.StateMachineProxyBuilder;
+import org.apache.mina.statemachine.annotation.IoHandlerTransition;
+import org.apache.mina.statemachine.context.IoSessionStateContextLookup;
+import org.apache.mina.statemachine.context.StateContext;
+import org.apache.mina.statemachine.context.StateContextFactory;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +31,7 @@ import java.util.concurrent.Executors;
 
 /**
  * 职责：
- *    创建并保持与annaServer的连接
+ *    创建并保持与anna的连接
  */
 public class LinkConnector {
 
@@ -37,77 +45,38 @@ public class LinkConnector {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkConnector.class);
 
-    final int SERVER_PORT = 9999;
-
-    IoSession session;
-
-    LinkClientFsm linkClientFsm;
-
-    ExecutorService executorService = Executors.newSingleThreadExecutor();
-
     NioSocketConnector connector = new NioSocketConnector();
 
     IRequestHandler requestHandler;
 
-    LinkConnector() {
-        Runnable acConnect = new Runnable() {
-            @Override
-            public void run() {
-                connect();
-            }
-        };
-        Runnable acLogin = new Runnable() {
-            @Override
-            public void run() {
-                login();
-            }
-        };
+    InetSocketAddress socketAddress;
 
-        linkClientFsm = new LinkClientFsm(acConnect, acLogin);
-        initConnector();
-
+    LinkConnector(IRequestHandler handler, String addr, int port) {
+        initConnector(handler);
+        socketAddress = new InetSocketAddress(addr, port);
     }
 
-    void initConnector() {
+    IoHandler createIoHandler(IRequestHandler handler) {
+        StateMachine sm = StateMachineFactory.getInstance(
+                IoHandlerTransition.class).create(LinkClientHandler.ST_EMPTY,
+                new LinkClientHandler());
+
+        return new StateMachineProxyBuilder().setStateContextLookup(
+                new IoSessionStateContextLookup(new StateContextFactory() {
+                    public StateContext create() {
+                        return new LinkStateContext() {{requestHandler = handler;}};
+                    }
+                })).create(IoHandler.class, sm);
+    }
+
+    void initConnector(IRequestHandler handler) {
         connector.setConnectTimeoutMillis(1000);
         connector.getFilterChain().addLast("logger", new LoggingFilter());
         connector.getFilterChain().addLast("protocol", new ProtocolCodecFilter(new MessageCodecFactory()));
         KeepAliveFilter keepAliveFilter = new KeepAliveFilter(new KeepAliveMessageFactoryImpl(false));
         keepAliveFilter.setRequestInterval(30);
         connector.getFilterChain().addLast("keepalive", keepAliveFilter);
-        connector.setHandler(new LinkMessageHandler(this));
-    }
-
-    public void start() {
-        executorService.submit(linkClientFsm);
-    }
-
-    void sleep() {
-        try{
-            Thread.sleep(1000);
-        }catch(InterruptedException e) {
-            //ignore
-        }
-    }
-
-    void login() {
-        LoginReq req = new LoginReq();
-        req.utdid = "123456";  //TODO: use idManager
-        session.write(req);
-        linkClientFsm.postEv(LinkEvent.EV_LOGIN_START);
-    }
-
-    void onLoginRsp(LoginRsp rsp) {
-        linkClientFsm.postEv(LinkEvent.EV_LOGIN_SUCC);
-    }
-
-    void onCmdExecReq(CmdExecReq req) {
-        CmdExecRsp rsp = requestHandler.onCmdExec(req);
-        session.write(rsp);
-    }
-
-    void onLinkException() {
-        linkClientFsm.postEv(LinkEvent.EV_EXCEPTION);
+        connector.setHandler(createIoHandler(handler));
     }
 
     public void setRequestHandler(IRequestHandler h) {
@@ -115,22 +84,12 @@ public class LinkConnector {
     }
 
     void connect() {
-        sleep();
-        try {
-            session = null;
-            LOGGER.info("connect....");
-            ConnectFuture f = connector.connect(new InetSocketAddress("192.168.1.107", SERVER_PORT));
-            f.awaitUninterruptibly();
-            if(f.isConnected()) {
-                session = f.getSession();
-                linkClientFsm.postEv(LinkEvent.EV_CONN_SUCC);
-            }else{
-                LOGGER.info("connect failed.");
-                linkClientFsm.postEv(LinkEvent.EV_EXCEPTION);
-            }
-        }catch (Exception e) {
-            LOGGER.info("connect failed.", e);
-            linkClientFsm.postEv(LinkEvent.EV_EXCEPTION);
+        ConnectFuture f = connector.connect(socketAddress);
+        f.awaitUninterruptibly();
+        if (f.isConnected()) {
+            LOGGER.info("connect success.");
+        } else {
+            LOGGER.info("connect failed.");
         }
     }
 

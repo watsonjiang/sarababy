@@ -8,7 +8,7 @@ public class LoginReq extends Message{
         MessageMeta.registerMessage(TYPE_LOGIN_REQ, LoginReq.class);
     }
 
-    public String utdid;
+    public String peerId;
 
     public LoginReq() {
         id = genId();

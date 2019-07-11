@@ -1,6 +1,8 @@
 package com.watson.saralink;
 
 import com.watson.saralink.codec.MessageCodecFactory;
+import com.watson.saralink.msg.CmdExecReq;
+import com.watson.saralink.msg.CmdExecRsp;
 import com.watson.saralink.msg.LoginReq;
 import com.watson.saralink.msg.LoginRsp;
 
@@ -15,39 +17,15 @@ import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
 public class LinkIT {
 
-    public static class TestMessageHandler extends IoHandlerAdapter {
-
-        String id;
-
-        public TestMessageHandler(String id) {
-            this.id = id;
-        }
-
-        @Override
-        public void sessionCreated(IoSession session) throws Exception {
-            System.out.println(id+"-------session created");
-        }
-
-        @Override
-        public void sessionOpened(IoSession session) throws Exception {
-            System.out.println(id+"--------session opened");
-        }
-
-        @Override
-        public void messageReceived(IoSession session, Object message) throws Exception {
-            System.out.println(id+"-------message received:" + message);
-            if(message instanceof LoginReq) {
-                session.write(new LoginRsp((LoginReq)message));
-            }
-        }
-
-    }
+    private static final Logger LOGGER = LoggerFactory.getLogger(LinkIT.class);
 
     @Before
     public void setup() {
@@ -59,18 +37,14 @@ public class LinkIT {
     @Test
     public void testMockServer() throws IOException {
 
-        LinkManager acceptor = new LinkAcceptor();
+        LinkAcceptor acceptor = new LinkAcceptor("localhost", 9999);
 
-        while(null != linkMgr.getPeer("123456")) {
-
-            rsp = linkMgr.getPeer("123456").execCmd(Req);
-
-        }
-
+        acceptor.bind();
 
         while(true) {
             try{
                 Thread.sleep(10000);
+                LOGGER.info("----------sleep");
             }catch(InterruptedException e) {
                 //ignore
             }
@@ -79,16 +53,26 @@ public class LinkIT {
 
     @Test
     public void testMockClient() throws InterruptedException {
-        LinkConnector linkConnector = new LinkConnector(requestHandler);
-        linkConnector.start();
+        LinkConnector connector = new LinkConnector(new IRequestHandler() {
+            @Override
+            public CmdExecRsp onCmdExec(CmdExecReq req) {
+                LOGGER.info("----onCmdExec. req:{}", req);
+                CmdExecRsp rsp = new CmdExecRsp(req);
+                return rsp;
+            }
+        }, "127.0.0.1", 9999);
 
-    }
-
-    @Test
-    public void testMockClient1() throws InterruptedException {
-        LinkConnector.instance();
+        connector.connect();
         while(true) {
-            Thread.sleep(1000);
+            try{
+                Thread.sleep(10000);
+                LOGGER.info("----------sleep");
+            }catch(InterruptedException e) {
+                //ignore
+            }
         }
+
     }
+
+
 }
