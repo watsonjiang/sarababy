@@ -39,6 +39,9 @@ public class MessageDecoder extends CumulativeProtocolDecoder {
 
     Message decodeMessage(int type, byte[] data) {
         Class<? extends Message> clz = MessageMeta.getMessageClz(type);
+        if(null == clz) {
+            throw new RuntimeException("未知消息类型. type:"+type);
+        }
         return gson.fromJson(new String(data), clz);
     }
 

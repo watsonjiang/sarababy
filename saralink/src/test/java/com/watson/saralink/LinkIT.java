@@ -44,7 +44,14 @@ public class LinkIT {
         while(true) {
             try{
                 Thread.sleep(10000);
-                LOGGER.info("----------sleep");
+
+                ISarababy sarababy = LinkManager.getInstance().getSarababy("sarababy");
+                if(null != sarababy) {
+                    String rsp = sarababy.exec("hello sara");
+                    LOGGER.info("------exec rsp:{}", rsp);
+                }else{
+                    LOGGER.info("------waiting sara.");
+                }
             }catch(InterruptedException e) {
                 //ignore
             }
@@ -53,16 +60,18 @@ public class LinkIT {
 
     @Test
     public void testMockClient() throws InterruptedException {
-        LinkConnector connector = new LinkConnector(new IRequestHandler() {
+        SaraReconnector connector = new SaraReconnector("sarababy", new IRequestHandler() {
             @Override
             public CmdExecRsp onCmdExec(CmdExecReq req) {
-                LOGGER.info("----onCmdExec. req:{}", req);
+                LOGGER.info("----onCmdExec. cmd:{}", req.cmdLine);
                 CmdExecRsp rsp = new CmdExecRsp(req);
+                rsp.output = "hello anna";
                 return rsp;
             }
         }, "127.0.0.1", 9999);
 
-        connector.connect();
+        connector.start();
+
         while(true) {
             try{
                 Thread.sleep(10000);

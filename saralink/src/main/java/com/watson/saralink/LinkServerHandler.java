@@ -32,9 +32,6 @@ public class LinkServerHandler {
     public static final String ST_AUTHENTICATED = "Authenticated";
 
     @State(ST_ROOT)
-    public static final String ST_CMD_EXEC_ONGOING = "CmdExecOngoing";
-
-    @State(ST_ROOT)
     public static final String ST_DISCONNECTED = "Disconnected";
 
     @IoHandlerTransition(on = IoHandlerEvents.SESSION_OPENED, in = ST_EMPTY, next = ST_CONNECTED)
@@ -46,13 +43,15 @@ public class LinkServerHandler {
     public void onAuthenticate(LinkStateContext context, IoSession session, LoginReq req) {
         context.peerId = req.peerId;
         LoginRsp rsp = new LoginRsp(req);
+        rsp.peerId = "annababy";
+        context.session = session;
         session.write(rsp);
         LinkManager.getInstance().register(req.peerId, context);
     }
 
-    @IoHandlerTransition(on = IoHandlerEvents.MESSAGE_RECEIVED, in = ST_CMD_EXEC_ONGOING, next = ST_AUTHENTICATED)
+    @IoHandlerTransition(on = IoHandlerEvents.MESSAGE_RECEIVED, in = ST_AUTHENTICATED)
     public void onCmdExecRsp(LinkStateContext context, IoSession session, CmdExecRsp rsp) {
-        while(false == context.cmdExecRspQueue.offer(rsp));
+        while(false == context.resultQueue.offer(rsp));
     }
 
     @IoHandlerTransition(on = IoHandlerEvents.INPUT_CLOSED, in = ST_ROOT)
@@ -60,7 +59,7 @@ public class LinkServerHandler {
         session.closeNow();
     }
 
-    @IoHandlerTransition(on = IoHandlerEvents.SESSION_CLOSED, in = ST_AUTHENTICATED)
+    @IoHandlerTransition(on = IoHandlerEvents.SESSION_CLOSED, in = ST_ROOT)
     public void onSessionClosed(LinkStateContext context, IoSession session) {
         LinkManager.getInstance().unregister(context.peerId);
     }
@@ -70,14 +69,4 @@ public class LinkServerHandler {
         LOGGER.info("unhandled event. ev:{}", ev);
     }
 
-    public static CmdExecRsp cmdExec(LinkStateContext context, CmdExecReq req) {
-        try {
-            IoSession session = context.session;
-            session.write(req);
-            return context.cmdExecRspQueue.poll(3, TimeUnit.SECONDS);
-        }catch(InterruptedException e) {
-            LOGGER.error("unexpected exception.", e);
-            throw new RuntimeException(e);
-        }
-    }
 }

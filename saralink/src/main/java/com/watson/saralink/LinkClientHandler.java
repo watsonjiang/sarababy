@@ -29,12 +29,17 @@ public class LinkClientHandler {
     @State(ST_ROOT)
     public static final String ST_AUTHENTICATED = "Authenticated";
 
+    private String peerId;
+
+    public LinkClientHandler(String peerId) {
+        this.peerId = peerId;
+    }
 
     @IoHandlerTransition(on = IoHandlerEvents.SESSION_OPENED, in = ST_EMPTY, next = ST_AUTHENTICATING)
     public void onSessionOpen(IoSession session) {
         LOGGER.info("session open. local:{} remote:{}", session.getLocalAddress(), session.getRemoteAddress());
         LoginReq req = new LoginReq();
-        req.peerId = "sarababay";
+        req.peerId = peerId;
         session.write(req);
     }
 
@@ -54,6 +59,11 @@ public class LinkClientHandler {
     @IoHandlerTransition(on = IoHandlerEvents.INPUT_CLOSED, in = ST_ROOT)
     public void onInputClosed(IoSession session) {
         session.closeNow();
+    }
+
+    @IoHandlerTransition(on = IoHandlerEvents.SESSION_CLOSED, in = ST_ROOT)
+    public void onSessionClosed(LinkStateContext context, IoSession session) {
+        LinkManager.getInstance().unregister(context.peerId);
     }
 
     @IoHandlerTransition(in = ST_ROOT, weight = 100)

@@ -51,15 +51,16 @@ public class LinkConnector {
 
     InetSocketAddress socketAddress;
 
-    LinkConnector(IRequestHandler handler, String addr, int port) {
-        initConnector(handler);
+
+    LinkConnector(String peerId, IRequestHandler handler, String addr, int port) {
+        initConnector(peerId, handler);
         socketAddress = new InetSocketAddress(addr, port);
     }
 
-    IoHandler createIoHandler(IRequestHandler handler) {
+    IoHandler createIoHandler(String peerId, IRequestHandler handler) {
         StateMachine sm = StateMachineFactory.getInstance(
                 IoHandlerTransition.class).create(LinkClientHandler.ST_EMPTY,
-                new LinkClientHandler());
+                new LinkClientHandler(peerId));
 
         return new StateMachineProxyBuilder().setStateContextLookup(
                 new IoSessionStateContextLookup(new StateContextFactory() {
@@ -69,14 +70,14 @@ public class LinkConnector {
                 })).create(IoHandler.class, sm);
     }
 
-    void initConnector(IRequestHandler handler) {
+    void initConnector(String peerId, IRequestHandler handler) {
         connector.setConnectTimeoutMillis(1000);
         connector.getFilterChain().addLast("logger", new LoggingFilter());
         connector.getFilterChain().addLast("protocol", new ProtocolCodecFilter(new MessageCodecFactory()));
         KeepAliveFilter keepAliveFilter = new KeepAliveFilter(new KeepAliveMessageFactoryImpl(false));
         keepAliveFilter.setRequestInterval(30);
         connector.getFilterChain().addLast("keepalive", keepAliveFilter);
-        connector.setHandler(createIoHandler(handler));
+        connector.setHandler(createIoHandler(peerId, handler));
     }
 
     public void setRequestHandler(IRequestHandler h) {

@@ -1,6 +1,7 @@
 package com.watson.saralink;
 
 import com.watson.saralink.msg.CmdExecRsp;
+import com.watson.saralink.msg.Message;
 
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.statemachine.context.AbstractStateContext;
@@ -20,7 +21,7 @@ public class LinkStateContext extends AbstractStateContext {
 
     public String peerId;
 
-    public BlockingQueue<CmdExecRsp> cmdExecRspQueue = new LinkedBlockingQueue<>();
+    public BlockingQueue<Message> resultQueue = new LinkedBlockingQueue<>();
 
     public IoSession session;
 }

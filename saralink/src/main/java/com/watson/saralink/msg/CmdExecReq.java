@@ -4,9 +4,7 @@ import static com.watson.saralink.msg.Constant.TYPE_CMD_EXEC_REQ;
 
 public class CmdExecReq extends Message{
 
-    static {
-       MessageMeta.registerMessage(TYPE_CMD_EXEC_REQ, CmdExecReq.class);
-    }
+    public String cmdLine;
 
     public CmdExecReq() {
         id = genId();

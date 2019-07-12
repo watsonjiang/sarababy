@@ -16,7 +16,11 @@ public class MessageEncoder implements ProtocolEncoder {
     @Override
     public void encode(IoSession ioSession, Object o, ProtocolEncoderOutput protocolEncoderOutput) throws Exception {
         Message m = (Message)o;
-        byte[] type = Utils.intToByteArray(MessageMeta.getMessageType(m.getClass()));
+        int msgType = MessageMeta.getMessageType(m.getClass());
+        if(-1 == msgType) {
+            throw new RuntimeException("未知消息类型. class:" + m.getClass());
+        }
+        byte[] type = Utils.intToByteArray(msgType);
         byte[] data = gson.toJson(o).getBytes();
         byte[] len = Utils.intToByteArray(data.length);
         IoBuffer buf = IoBuffer.allocate(8 + data.length);

@@ -56,6 +56,11 @@ public class LinkAcceptor {
     }
 
     public LinkAcceptor(String addr, int port) {
+        try {
+            Class.forName(LoginReq.class.getName());
+        }catch (ClassNotFoundException e) {
+            //ignore
+        }
         socketAddress = new InetSocketAddress(addr, port);
     }
 
