@@ -1,6 +1,7 @@
 package com.watson.saralink;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class ForegroundService extends Service {
 
@@ -28,12 +30,14 @@ public class ForegroundService extends Service {
 
     RequestHandler requestHandler = new RequestHandler();
 
-    //ScheduledExecutorService timer = Executors.newScheduledThreadPool(1);
+    ScheduledExecutorService timer = Executors.newScheduledThreadPool(1);
 
     //取消后台更新任务用
-    //ScheduledFuture scheduledFuture;
+    ScheduledFuture scheduledFuture;
 
-    //NotificationManagerCompat notificationManager;
+    NotificationManagerCompat notificationManager;
+
+    SaraReconnector saraReconnector;
 
     int i = 0;
 
@@ -46,6 +50,7 @@ public class ForegroundService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
+        LOGGER.error("oops! foregroundService onbind called.!!!!");
         throw new UnsupportedOperationException("oops, not implemented yet!");
     }
 
@@ -72,23 +77,25 @@ public class ForegroundService extends Service {
     void connect() {
         LOGGER.info("----connect. ip:{} port:{}", LinkConfigManager.getInstance().getLinkConfig().getAnnaIp(),
                 LinkConfigManager.getInstance().getLinkConfig().getAnnaPort());
-
+        saraReconnector = new SaraReconnector("sarababy1", new RequestHandler(), LinkConfigManager.getInstance().getLinkConfig().getAnnaIp(), LinkConfigManager.getInstance().getLinkConfig().getAnnaPort());
+        saraReconnector.start();
     }
 
     void disconnect() {
+        LOGGER.info("-----disconnect.");
 
     }
 
     Notification buildNotification() {
          // Create notification builder.
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this.getApplicationContext());
-        //i = i + 1;
+        i = i + 1;
         builder.setContentTitle("sarababy");
-        //builder.setContentText(String.format("%s:%s connected %s",
-        //        LinkConfigManager.getInstance().getLinkConfig().getAnnaIp(),
-        //        LinkConfigManager.getInstance().getLinkConfig().getAnnaPort(),
-        //        i));
-        builder.setContentText("hello");
+        builder.setContentText(String.format("%s:%s connected %s",
+                LinkConfigManager.getInstance().getLinkConfig().getAnnaIp(),
+                LinkConfigManager.getInstance().getLinkConfig().getAnnaPort(),
+                i));
+        //必须设定smallIcon,否则通知无法显示
         builder.setSmallIcon(R.mipmap.ic_launcher_round);
         builder.setWhen(System.currentTimeMillis());
         Bitmap largeIconBitmap = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
@@ -103,7 +110,7 @@ public class ForegroundService extends Service {
     void updateNotification() {
         Notification notification = buildNotification();
 
-        //notificationManager.notify(1, notification);
+        notificationManager.notify(1, notification);
     }
 
     void startForegroundService() {
@@ -111,17 +118,21 @@ public class ForegroundService extends Service {
 
         Notification notification = buildNotification();
 
+        notificationManager = NotificationManagerCompat.from(getApplicationContext());
+
         // Start foreground service.
         startForeground(1, notification);
 
-        /*
         scheduledFuture = timer.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                updateNotification();
+                try {
+                    updateNotification();
+                }catch(Exception e) {
+                    LOGGER.error("unexpected exception.", e);
+                }
             }
         }, 0, 1, TimeUnit.SECONDS);
-        */
         connect();
     }
 
@@ -131,11 +142,11 @@ public class ForegroundService extends Service {
 
         stopForeground(true);
 
-        /*
+        disconnect();
+
         if(null != scheduledFuture) {
             scheduledFuture.cancel(false);
         }
-        */
 
         stopSelf();
     }

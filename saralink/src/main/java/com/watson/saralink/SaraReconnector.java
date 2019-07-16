@@ -23,6 +23,8 @@ public class SaraReconnector {
 
     String peerId;
 
+    boolean stopFlag;
+
     public SaraReconnector(String peerId, IRequestHandler requestHandler, String addr, int port) {
         this.requestHandler = requestHandler;
         this.addr = addr;
@@ -31,10 +33,11 @@ public class SaraReconnector {
     }
 
     public void start() {
+        stopFlag = false;
         executorService.submit(new Runnable() {
             @Override
             public void run() {
-                while(true) {
+                while(!stopFlag) {
                     try {
                         sleep();
                         checkAndReconnect();
@@ -42,8 +45,13 @@ public class SaraReconnector {
                         LOGGER.error("unexpected exception.", t);
                     }
                 }
+                LOGGER.info("SaraReconnector loop exist.");
             }
         });
+    }
+
+    public void stop() {
+        stopFlag = true;
     }
 
     public void sleep() {

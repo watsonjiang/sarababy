@@ -37,7 +37,7 @@ public class LinkIT {
     @Test
     public void testMockServer() throws IOException {
 
-        LinkAcceptor acceptor = new LinkAcceptor("localhost", 9999);
+        LinkAcceptor acceptor = new LinkAcceptor("0.0.0.0", 9999);
 
         acceptor.bind();
 
