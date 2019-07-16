@@ -39,15 +39,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        setTitle("annababy");
+        setTitle("sarababy");
 
         LinkConfig linkConfig = loadLinkConfig();
         //LinkConfig linkConfig = new LinkConfig();
 
-        TextInputEditText ipEditText = findViewById(R.id.annababy_ip_input);
+        TextInputEditText ipEditText = findViewById(R.id.sarababy_ip_input);
         ipEditText.setText(linkConfig.getAnnaIp());
 
-        TextInputEditText portEditText = findViewById(R.id.annababy_port_input);
+        TextInputEditText portEditText = findViewById(R.id.sarababy_port_input);
         portEditText.setText(String.valueOf(linkConfig.getAnnaPort()));
 
 
@@ -58,9 +58,9 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 LinkConfig linkConfig = new LinkConfig();
-                TextInputEditText ipEditText = findViewById(R.id.annababy_ip_input);
+                TextInputEditText ipEditText = findViewById(R.id.sarababy_ip_input);
                 linkConfig.setAnnaIp(ipEditText.getText().toString());
-                TextInputEditText portEditText = findViewById(R.id.annababy_port_input);
+                TextInputEditText portEditText = findViewById(R.id.sarababy_port_input);
                 linkConfig.setAnnaPort(Integer.valueOf(portEditText.getText().toString()));
                 saveLinkConfig(linkConfig);
 
