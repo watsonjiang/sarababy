@@ -81,15 +81,15 @@ public class ForegroundService extends Service {
 
     Notification buildNotification() {
          // Create notification builder.
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-        i = i + 1;
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this.getApplicationContext());
+        //i = i + 1;
         builder.setContentTitle("sarababy");
         //builder.setContentText(String.format("%s:%s connected %s",
         //        LinkConfigManager.getInstance().getLinkConfig().getAnnaIp(),
         //        LinkConfigManager.getInstance().getLinkConfig().getAnnaPort(),
         //        i));
         builder.setContentText("hello");
-
+        builder.setSmallIcon(R.mipmap.ic_launcher_round);
         builder.setWhen(System.currentTimeMillis());
         Bitmap largeIconBitmap = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
         builder.setLargeIcon(largeIconBitmap);
