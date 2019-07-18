@@ -9,4 +9,6 @@ public class Constant {
     public static final int TYPE_FILE_FETCH_RSP = 6;
     public static final int TYPE_LOGIN_REQ = 7;
     public static final int TYPE_LOGIN_RSP = 8;
+    public static final int TYPE_SCREENCAP_REQ = 9;
+    public static final int TYPE_SCREENCAP_RSP = 10;
 }

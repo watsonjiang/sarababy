@@ -3,11 +3,14 @@ package com.watson.saralink.codec;
 import com.google.gson.Gson;
 import com.watson.saralink.msg.Message;
 import com.watson.saralink.msg.MessageMeta;
+import com.watson.saralink.msg.ScreenCapRsp;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.CumulativeProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
+
+import static com.watson.saralink.msg.Constant.TYPE_SCREENCAP_RSP;
 
 public class MessageDecoder extends CumulativeProtocolDecoder {
 
@@ -37,12 +40,22 @@ public class MessageDecoder extends CumulativeProtocolDecoder {
         return false;
     }
 
+
+
     Message decodeMessage(int type, byte[] data) {
-        Class<? extends Message> clz = MessageMeta.getMessageClz(type);
-        if(null == clz) {
-            throw new RuntimeException("未知消息类型. type:"+type);
+        if(type == TYPE_SCREENCAP_RSP) {
+            //截图响应带图片内容信息，特别处理
+            ScreenCapRsp rsp = new ScreenCapRsp();
+            rsp.setData(data);
+            return rsp;
+        }else {
+
+            Class<? extends Message> clz = MessageMeta.getMessageClz(type);
+            if (null == clz) {
+                throw new RuntimeException("未知消息类型. type:" + type);
+            }
+            return gson.fromJson(new String(data), clz);
         }
-        return gson.fromJson(new String(data), clz);
     }
 
 }

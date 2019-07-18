@@ -10,6 +10,8 @@ import static com.watson.saralink.msg.Constant.TYPE_HEARTBEAT_REQ;
 import static com.watson.saralink.msg.Constant.TYPE_HEARTBEAT_RSP;
 import static com.watson.saralink.msg.Constant.TYPE_LOGIN_REQ;
 import static com.watson.saralink.msg.Constant.TYPE_LOGIN_RSP;
+import static com.watson.saralink.msg.Constant.TYPE_SCREENCAP_REQ;
+import static com.watson.saralink.msg.Constant.TYPE_SCREENCAP_RSP;
 
 /**
  * 消息类型注册器
@@ -25,6 +27,8 @@ public class MessageMeta {
         registerMessage(TYPE_HEARTBEAT_RSP, HeartBeatRsp.class);
         registerMessage(TYPE_LOGIN_REQ, LoginReq.class);
         registerMessage(TYPE_LOGIN_RSP, LoginRsp.class);
+        registerMessage(TYPE_SCREENCAP_REQ, ScreenCapReq.class);
+        registerMessage(TYPE_SCREENCAP_RSP, ScreenCapRsp.class);
     }
 
     public static void registerMessage(int type, Class<? extends Message> clz) {

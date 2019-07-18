@@ -4,6 +4,8 @@ import com.watson.saralink.msg.CmdExecReq;
 import com.watson.saralink.msg.CmdExecRsp;
 import com.watson.saralink.msg.LoginReq;
 import com.watson.saralink.msg.LoginRsp;
+import com.watson.saralink.msg.ScreenCapReq;
+import com.watson.saralink.msg.ScreenCapRsp;
 
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.statemachine.annotation.IoHandlerTransition;
@@ -51,8 +53,14 @@ public class LinkClientHandler {
     }
 
     @IoHandlerTransition(on = IoHandlerEvents.MESSAGE_RECEIVED, in = ST_AUTHENTICATED)
-    public void onCmdExecRsp(LinkStateContext context, IoSession session, CmdExecReq req) {
+    public void onCmdExecRep(LinkStateContext context, IoSession session, CmdExecReq req) {
         CmdExecRsp rsp = context.requestHandler.onCmdExec(req);
+        session.write(rsp);
+    }
+
+    @IoHandlerTransition(on = IoHandlerEvents.MESSAGE_RECEIVED, in = ST_AUTHENTICATED)
+    public void onScreenCapReq(LinkStateContext context, IoSession session, ScreenCapReq req) {
+        ScreenCapRsp rsp = context.requestHandler.onScreenCap(req);
         session.write(rsp);
     }
 

@@ -3,6 +3,8 @@ package com.watson.saralink;
 import com.watson.saralink.msg.CmdExecReq;
 import com.watson.saralink.msg.CmdExecRsp;
 import com.watson.saralink.msg.Message;
+import com.watson.saralink.msg.ScreenCapReq;
+import com.watson.saralink.msg.ScreenCapRsp;
 
 import org.apache.mina.core.session.IoSession;
 
@@ -23,8 +25,8 @@ public class SarababyProxy implements InvocationHandler {
 
     @Override
     public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
+        IoSession session = context.session;
         if("exec".equals(method.getName())) {
-            IoSession session = context.session;
 
             CmdExecReq req = new CmdExecReq();
 
@@ -39,6 +41,15 @@ public class SarababyProxy implements InvocationHandler {
 
             CmdExecRsp rsp = (CmdExecRsp)msg;
             return rsp.output;
+        }else if("screenCap".equals(method.getName())) {
+            ScreenCapReq req = new ScreenCapReq();
+            session.write(req);
+            Message msg = context.resultQueue.poll(3, TimeUnit.SECONDS);
+            if(null == msg) {
+                throw new RuntimeException("request timeout");
+            }
+            ScreenCapRsp rsp = (ScreenCapRsp)msg;
+            return rsp.getData();
         }
         return null;
     }

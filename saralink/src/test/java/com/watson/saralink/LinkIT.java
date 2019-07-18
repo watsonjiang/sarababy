@@ -5,6 +5,8 @@ import com.watson.saralink.msg.CmdExecReq;
 import com.watson.saralink.msg.CmdExecRsp;
 import com.watson.saralink.msg.LoginReq;
 import com.watson.saralink.msg.LoginRsp;
+import com.watson.saralink.msg.ScreenCapReq;
+import com.watson.saralink.msg.ScreenCapRsp;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.mina.core.future.ConnectFuture;
@@ -47,8 +49,9 @@ public class LinkIT {
 
                 ISarababy sarababy = LinkManager.getInstance().getSarababy("sarababy");
                 if(null != sarababy) {
-                    String rsp = sarababy.exec("hello sara");
-                    LOGGER.info("------exec rsp:{}", rsp);
+                    //String rsp = sarababy.exec("hello sara");
+                    byte[] data = sarababy.screenCap();
+                    LOGGER.info("------exec rsp:{}", new String(data));
                 }else{
                     LOGGER.info("------waiting sara.");
                 }
@@ -68,6 +71,16 @@ public class LinkIT {
                 rsp.output = "hello anna";
                 return rsp;
             }
+
+            @Override
+            public ScreenCapRsp onScreenCap(ScreenCapReq req) {
+                LOGGER.info("----onScreenCap.");
+                ScreenCapRsp rsp = new ScreenCapRsp();
+                rsp.setData("a image".getBytes());
+                return rsp;
+            }
+
+
         }, "127.0.0.1", 9999);
 
         connector.start();
