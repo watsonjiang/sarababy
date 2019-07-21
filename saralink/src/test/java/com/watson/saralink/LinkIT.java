@@ -22,8 +22,12 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+
+import sun.misc.HexDumpEncoder;
 
 public class LinkIT {
 
@@ -43,15 +47,27 @@ public class LinkIT {
 
         acceptor.bind();
 
+        boolean isCalled = false;
         while(true) {
             try{
                 Thread.sleep(10000);
 
                 ISarababy sarababy = LinkManager.getInstance().getSarababy("sarababy");
                 if(null != sarababy) {
-                    //String rsp = sarababy.exec("hello sara");
-                    byte[] data = sarababy.screenCap();
-                    LOGGER.info("------exec rsp:{}", new String(data));
+                    if(!isCalled) {
+                        isCalled = true;
+                        try {
+                            //String rsp = sarababy.exec("hello sara");
+                            byte[] data = sarababy.screenCap();
+                            LOGGER.info("------exec rsp:{}", data);
+                            File f = new File("1.png");
+                            FileOutputStream fos = new FileOutputStream(f);
+                            fos.write(data);
+                            fos.close();
+                        } catch (Exception e) {
+                            LOGGER.error("unexpected exception.", e);
+                        }
+                    }
                 }else{
                     LOGGER.info("------waiting sara.");
                 }

@@ -34,7 +34,7 @@ public class SarababyProxy implements InvocationHandler {
 
             session.write(req);
 
-            Message msg = context.resultQueue.poll(3, TimeUnit.SECONDS);
+            Message msg = context.resultQueue.poll(30, TimeUnit.SECONDS);
             if(null == msg) {
                 throw new RuntimeException("request timeout.");
             }
@@ -44,7 +44,7 @@ public class SarababyProxy implements InvocationHandler {
         }else if("screenCap".equals(method.getName())) {
             ScreenCapReq req = new ScreenCapReq();
             session.write(req);
-            Message msg = context.resultQueue.poll(3, TimeUnit.SECONDS);
+            Message msg = context.resultQueue.poll(30, TimeUnit.SECONDS);
             if(null == msg) {
                 throw new RuntimeException("request timeout");
             }

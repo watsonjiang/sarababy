@@ -1,7 +1,6 @@
 package com.watson.saralink;
 
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -77,7 +76,7 @@ public class ForegroundService extends Service {
     void connect() {
         LOGGER.info("----connect. ip:{} port:{}", LinkConfigManager.getInstance().getLinkConfig().getAnnaIp(),
                 LinkConfigManager.getInstance().getLinkConfig().getAnnaPort());
-        saraReconnector = new SaraReconnector("sarababy1", new RequestHandler(), LinkConfigManager.getInstance().getLinkConfig().getAnnaIp(), LinkConfigManager.getInstance().getLinkConfig().getAnnaPort());
+        saraReconnector = new SaraReconnector("sarababy", new RequestHandler(), LinkConfigManager.getInstance().getLinkConfig().getAnnaIp(), LinkConfigManager.getInstance().getLinkConfig().getAnnaPort());
         saraReconnector.start();
     }
 
