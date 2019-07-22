@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
@@ -46,17 +47,24 @@ public class RequestHandler implements IRequestHandler {
     @Override
     public ScreenCapRsp onScreenCap(ScreenCapReq req) {
         try {
-            Process proc = getSuProc();
-            proc.getOutputStream().write("screencap\n".getBytes());
-            int i = 0;
-            int j = 0;
-            while(-1 != (j = proc.getInputStream().read())) {
-                i++;
-                LOGGER.info("i:{} j:{}", i, j);
-            }
+            ProcessBuilder builder = new ProcessBuilder("su", "0", "screencap", "-p");
+            Process proc = builder.start();
+            //Process proc = getSuProc();
+            //proc.getOutputStream().write("screencap -p\n".getBytes());
 
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            byte[] buf = new byte[1024];
+            int len;
+            while(-1 != (len = proc.getInputStream().read(buf))) {
+                bos.write(buf, 0, len);
+            }
+            int exitCode = proc.waitFor();
+            proc.destroy();
+            LOGGER.info("exit code:{}", exitCode);
+            byte[] data = bos.toByteArray();
+            LOGGER.info("data size:{}", data.length);
             ScreenCapRsp rsp = new ScreenCapRsp(req);
-            rsp.setData("test".getBytes());
+            rsp.setData(data);
             return rsp;
         }catch (Exception e) {
             LOGGER.error("oops!", e);

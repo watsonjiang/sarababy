@@ -59,7 +59,7 @@ public class LinkIT {
                         try {
                             //String rsp = sarababy.exec("hello sara");
                             byte[] data = sarababy.screenCap();
-                            LOGGER.info("------exec rsp:{}", data);
+                            LOGGER.info("------exec rsp size:{}", data.length);
                             File f = new File("1.png");
                             FileOutputStream fos = new FileOutputStream(f);
                             fos.write(data);
